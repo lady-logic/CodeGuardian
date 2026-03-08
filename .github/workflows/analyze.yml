@@ -1,0 +1,50 @@
+﻿name: 🛡️ CodeGuardian Analysis
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  analyze:
+    name: CodeGuardian AI Review
+    runs-on: ubuntu-latest
+    needs: sonarcloud
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build CodeGuardian
+        run: dotnet build src/CodeGuardian.Analyzer/CodeGuardian.Analyzer.csproj
+
+      - name: Run CodeGuardian
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          dotnet run --project src/CodeGuardian.Analyzer/CodeGuardian.Analyzer.csproj \\
+            -- ${{ vars.SONAR_PROJECT_KEY }}

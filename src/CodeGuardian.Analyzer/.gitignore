@@ -9,3 +9,9 @@ obj/
 # .NET
 *.suo
 *.cache
+
+# Lokale Secrets
+*.env
+.env
+appsettings.local.json
+secrets.json
