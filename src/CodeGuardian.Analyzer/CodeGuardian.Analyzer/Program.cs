@@ -18,7 +18,8 @@ var pullRequestNumber = int.Parse(
 
 Console.WriteLine($"📡 Fetching SonarCloud issues for {sonarProjectKey}...");
 var sonarClient = new SonarCloudClient(sonarToken);
-var issues = await sonarClient.GetIssuesAsync(sonarProjectKey);
+var prNumber = Environment.GetEnvironmentVariable("PR_NUMBER");
+var issues = await sonarClient.GetIssuesAsync(sonarProjectKey, prNumber);
 
 if (!issues.Any())
 {

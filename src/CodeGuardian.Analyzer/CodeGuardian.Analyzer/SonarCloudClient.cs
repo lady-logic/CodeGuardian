@@ -26,13 +26,16 @@ public class SonarCloudClient
             new AuthenticationHeaderValue("Basic", encoded);
     }
 
-    public async Task<List<SonarIssue>> GetIssuesAsync(string projectKey)
+    public async Task<List<SonarIssue>> GetIssuesAsync(string projectKey, string? pullRequestNumber = null)
     {
         var url = $"{BaseUrl}/issues/search" +
                   $"?projectKeys={projectKey}" +
                   $"&resolved=false" +
                   $"&types=CODE_SMELL,BUG,VULNERABILITY" +
                   $"&ps=20";
+
+        if (pullRequestNumber != null)
+            url += $"&pullRequest={pullRequestNumber}";
 
         var response = await _httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
